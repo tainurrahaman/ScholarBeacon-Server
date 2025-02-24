@@ -24,6 +24,9 @@ const scholarshipCollection = client
   .db("ScholarBeaconDB")
   .collection("scholarships");
 const reviewCollection = client.db("ScholarBeaconDB").collection("reviews");
+const applicationCollection = client
+  .db("ScholarBeaconDB")
+  .collection("applications");
 
 async function run() {
   try {
@@ -51,6 +54,49 @@ async function run() {
       const query = { _id: new ObjectId(id) };
       const result = await scholarshipCollection.findOne(query);
       res.send(result);
+    });
+
+    // Application DB
+
+    // Read application data using user id from DB
+
+    app.get("/applications/:user_id", async (req, res) => {
+      try {
+        const userId = req.params.user_id;
+        const query = { user_id: userId };
+
+        const applications = await applicationCollection.find(query).toArray();
+        const user = await userCollection.findOne({
+          _id: new ObjectId(userId),
+        });
+
+        const applicationsWithDetails = await Promise.all(
+          applications.map(async (application) => {
+            const scholarship = await scholarshipCollection.findOne({
+              _id: new ObjectId(application.scholarship_id),
+            });
+
+            return {
+              ...application,
+              scholarship_name: scholarship
+                ? scholarship.subject_name
+                : "Unknown",
+              university_name: scholarship
+                ? scholarship.university_name
+                : "Unknown",
+              scholarship_category: scholarship
+                ? scholarship.university_name
+                : "Unknown",
+              subject_name: scholarship ? scholarship.subject_name : "Unknown",
+            };
+          })
+        );
+
+        res.json(applicationsWithDetails);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
 
     // Review DB
