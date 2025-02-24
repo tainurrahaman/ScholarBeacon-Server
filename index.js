@@ -19,8 +19,24 @@ const client = new MongoClient(uri, {
   },
 });
 
+const userCollection = client.db("ScholarBeaconDB").collection("users");
+const scholarshipCollection = client
+  .db("ScholarBeaconDB")
+  .collection("scholarships");
+
 async function run() {
   try {
+    app.post("/users", async (req, res) => {
+      const newUser = req.body;
+      const result = await userCollection.insertOne(newUser);
+      res.send(result);
+    });
+
+    app.get("/scholarships", async (req, res) => {
+      const result = await scholarshipCollection.find().toArray();
+      res.send(result);
+    });
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
