@@ -60,10 +60,15 @@ async function run() {
 
     // Read application data using user id from DB
 
-    app.get("/applications/:user_id", async (req, res) => {
+    app.get("/applications", async (req, res) => {
+      const result = await applicationCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.get("/applications/:applicant_id", async (req, res) => {
       try {
-        const userId = req.params.user_id;
-        const query = { user_id: userId };
+        const userId = req.params.applicant_id;
+        const query = { applicant_id: userId };
 
         const applications = await applicationCollection.find(query).toArray();
         const user = await userCollection.findOne({
@@ -100,6 +105,11 @@ async function run() {
     });
 
     // Review DB
+
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
 
     app.get("/reviews/:scholarship_id", async (req, res) => {
       try {
