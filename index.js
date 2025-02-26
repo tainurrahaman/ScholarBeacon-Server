@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -31,15 +32,38 @@ const applicationCollection = client
 async function run() {
   try {
     // Users API
+
+    // Write user data in userCollection
     app.post("/users", async (req, res) => {
       const newUser = req.body;
       const result = await userCollection.insertOne(newUser);
       res.send(result);
     });
 
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
+    // Read user data from userCollection based on email
     app.get("/users/:email", async (req, res) => {
       const email = req.params.email;
+      console.log(email);
       const result = await userCollection.findOne({ email: email });
+      res.send(result);
+    });
+
+    app.patch("/users", async (req, res) => {
+      const data = req.body;
+      const email = req.body.email;
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: {
+          name: data.name,
+          image: data.photo,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
@@ -169,6 +193,21 @@ async function run() {
         console.error("Error fetching reviews:", error);
         res.status(500).send("Internal Server Error");
       }
+    });
+
+    // Payment intent
+    app.post("/create-payment-intent", async (req, res) => {
+      const { fee } = req.body;
+      const amount = parseInt(fee * 100);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
 
     // Connect the client to the server	(optional starting in v4.7)
