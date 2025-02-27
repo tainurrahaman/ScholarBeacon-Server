@@ -99,42 +99,18 @@ async function run() {
     });
 
     app.get("/applications/:applicant_id", async (req, res) => {
-      try {
-        const userId = req.params.applicant_id;
-        const query = { applicant_id: userId };
+      const userId = req.params.applicant_id;
+      const query = { applicant_id: userId };
 
-        const applications = await applicationCollection.find(query).toArray();
-        const user = await userCollection.findOne({
-          _id: new ObjectId(userId),
-        });
+      const applications = await applicationCollection.find(query).toArray();
+      res.send(applications);
+    });
 
-        const applicationsWithDetails = await Promise.all(
-          applications.map(async (application) => {
-            const scholarship = await scholarshipCollection.findOne({
-              _id: new ObjectId(application.scholarship_id),
-            });
-
-            return {
-              ...application,
-              scholarship_name: scholarship
-                ? scholarship.subject_name
-                : "Unknown",
-              university_name: scholarship
-                ? scholarship.university_name
-                : "Unknown",
-              scholarship_category: scholarship
-                ? scholarship.university_name
-                : "Unknown",
-              subject_name: scholarship ? scholarship.subject_name : "Unknown",
-            };
-          })
-        );
-
-        res.json(applicationsWithDetails);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-        res.status(500).send("Internal Server Error");
-      }
+    app.delete("/applications/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await applicationCollection.deleteOne(query);
+      res.send(result);
     });
 
     // Review DB
