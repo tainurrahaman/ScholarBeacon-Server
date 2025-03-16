@@ -16,6 +16,7 @@ app.use(
     credentials: true,
   })
 );
+app.options("*", cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xtebx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -185,7 +186,7 @@ async function run() {
 
     // Testimonals DB
 
-    app.get("/testimonals", async (req, res) => {
+    app.get("/testimonials", async (req, res) => {
       const result = await testimonalCollection.find().toArray();
       res.send(result);
     });
