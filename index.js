@@ -34,6 +34,9 @@ const scholarshipCollection = client
   .db("ScholarBeaconDB")
   .collection("scholarships");
 const reviewCollection = client.db("ScholarBeaconDB").collection("reviews");
+const testimonalCollection = client
+  .db("ScholarBeaconDB")
+  .collection("testimonals");
 const applicationCollection = client
   .db("ScholarBeaconDB")
   .collection("applications");
@@ -178,6 +181,13 @@ async function run() {
         console.error("Error fetching reviews:", error);
         res.status(500).send("Internal Server Error");
       }
+    });
+
+    // Testimonals DB
+
+    app.get("/testimonals", async (req, res) => {
+      const result = await testimonalCollection.find().toArray();
+      res.send(result);
     });
 
     // Payment intent
